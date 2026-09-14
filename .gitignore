@@ -1,0 +1,13 @@
+.vs/
+.dotnet-cli/
+bin/
+obj/
+artifacts/
+*.user
+*.suo
+
+MIDI/*
+!MIDI/.gitkeep
+
+NoteSequences/*
+!NoteSequences/.gitkeep
