@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2 — 2026-10-03
+
+### MIDI conversion and activity log
+
+- Added MIDI note-number sequences to the activity log with an option to hide them.
+- Added optional channel-duration equalization by appending trailing silence to shorter channels.
+
+### Playback and recording
+
+- Added a configurable pause after playback before automated recording is stopped.
+- Saved the new log, channel-duration, and post-playback-pause options between application runs.
+
 ## 1.1 — 2026-09-06
 
 ### Interface

@@ -111,7 +111,8 @@ internal static class MidiConverter
         int noteDelayMs = 50,
         bool english = false,
         double? bpmOverride = null,
-        bool suppressSimultaneousNoteWarnings = false)
+        bool suppressSimultaneousNoteWarnings = false,
+        bool equalizeChannelDurations = false)
     {
         if (!File.Exists(path))
             throw new FileNotFoundException(L(english, "MIDI file not found.", "MIDI-файл не найден."), path);
@@ -312,8 +313,54 @@ internal static class MidiConverter
         if (validationErrors.Count > 0)
             throw new MidiValidationException(validationErrors, validationWarnings);
 
+        if (equalizeChannelDurations)
+            EqualizeChannelDurations(results, noteDelayMs);
+
         return results;
     }
+
+    private static void EqualizeChannelDurations(
+        IList<MidiChannelConversion> channels,
+        int noteDelayMs)
+    {
+        if (channels.Count < 2)
+            return;
+
+        var durations = channels
+            .Select(channel => GetPlaybackDuration(channel.Result.Commands, noteDelayMs))
+            .ToArray();
+        var maximumDuration = durations.Max();
+
+        for (var index = 0; index < channels.Count; index++)
+        {
+            var remaining = maximumDuration - durations[index];
+            if (remaining <= 0)
+                continue;
+
+            var commands = channels[index].Result.Commands.ToList();
+            while (remaining > 0)
+            {
+                var duration = (int)Math.Min(remaining, int.MaxValue);
+                commands.Add(new SequenceCommand(SequenceCommandType.Sleep, "Sleep", duration));
+                remaining -= duration;
+            }
+
+            channels[index] = channels[index] with
+            {
+                Result = channels[index].Result with { Commands = commands }
+            };
+        }
+    }
+
+    private static long GetPlaybackDuration(
+        IEnumerable<SequenceCommand> commands,
+        int noteDelayMs) =>
+        commands.Sum(command => command.Type switch
+        {
+            SequenceCommandType.Note => (long)command.DurationMs + noteDelayMs,
+            SequenceCommandType.Sleep => command.DurationMs,
+            _ => 0L
+        });
 
     private static ConversionResult ConvertChannel(
         int channel,
@@ -436,6 +483,7 @@ internal static class MidiConverter
         return new ConversionResult(
             commands,
             warnings,
+            playableNotes.Select(note => note.Note).ToArray(),
             tempoMap.InitialBpm,
             tempoMap.MinimumBpm,
             tempoMap.MaximumBpm,

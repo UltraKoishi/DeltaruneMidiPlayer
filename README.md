@@ -11,11 +11,14 @@ A Windows application that converts MIDI files into key sequences and plays them
 - converts `.mid` and `.midi` files into text command sequences;
 - stores every active MIDI channel in one sequence file per composition;
 - lets you select and play a channel directly in the application;
+- can display the played MIDI note numbers for every channel in the activity log;
+- can pad shorter channels with silence so every channel has the same playback duration;
 - supports all MIDI `Set Tempo` events and BPM changes within a composition;
 - provides detailed reports about polyphony conflicts and short notes;
 - keeps only the highest note in fully synchronized chords;
 - plays sequences through AutoHotkey v2 with F9/F10 hotkeys;
 - can press a configurable recording hotkey before and after playback (default: `Numpad7`);
+- supports a configurable pause after playback before recording is stopped;
 - includes English and Russian interface languages;
 - includes system, light, and dark themes;
 - saves the selected theme, language, window size, and window state;
@@ -42,7 +45,7 @@ Building the application from source requires the .NET 10 SDK.
 4. Select the generated composition, choose the required channel in the **MIDI channel** list, and click **Start playback**.
 5. Switch to the game and press F9. Only the selected channel starts. Press F10 to close the AutoHotkey script.
 
-To control OBS recording automatically, open **Settings**, enable **Start and stop recording with playback**, and select the same key configured in OBS. The default is `Numpad7`. The key is pressed before the first note and again after the last note; stopping the AHK script also stops an active recording.
+To control OBS recording automatically, open **Settings**, enable **Start and stop recording with playback**, and select the same key configured in OBS. The default is `Numpad7`. The key is pressed before the first note and again after playback and the optional post-playback pause; stopping the AHK script also stops an active recording.
 
 ## Simultaneous-note handling
 

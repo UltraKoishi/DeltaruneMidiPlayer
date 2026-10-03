@@ -74,9 +74,13 @@ public sealed class MainForm : Form
     private string? _draggedMidiPath;
     private IReadOnlyList<SequenceChannelInfo> _sequenceChannels = [];
     private int _noteDelayMs = 50;
+    private bool _useEndPause;
+    private int _endPauseMs = 1000;
     private bool _useCustomBpm;
     private decimal _customBpm = 120;
     private bool _suppressSimultaneousWarnings;
+    private bool _showNoteSequence = true;
+    private bool _equalizeChannelDurations;
     private bool _changeInstruments;
     private bool _controlRecording;
     private string _recordingHotkey = "Numpad7";
@@ -86,6 +90,10 @@ public sealed class MainForm : Form
         _settings = AppSettingsStore.Load();
         _language = _settings.Language == "en" ? UiLanguage.English : UiLanguage.Russian;
         _themeMode = _settings.Theme;
+        _showNoteSequence = _settings.ShowNoteSequence;
+        _equalizeChannelDurations = _settings.EqualizeChannelDurations;
+        _useEndPause = _settings.UseEndPause;
+        _endPauseMs = _settings.EndPauseMs;
         _controlRecording = _settings.ControlRecording;
         _recordingHotkey = RecordingHotkeys.Contains(
             _settings.RecordingHotkey,
@@ -616,9 +624,13 @@ public sealed class MainForm : Form
         var values = new AdvancedSettingsValues(
             _noteDelayMs,
             _changeInstruments,
+            _useEndPause,
+            _endPauseMs,
             _useCustomBpm,
             _customBpm,
             _suppressSimultaneousWarnings,
+            _showNoteSequence,
+            _equalizeChannelDurations,
             _controlRecording,
             _recordingHotkey);
 
@@ -633,9 +645,13 @@ public sealed class MainForm : Form
 
         _noteDelayMs = dialog.Values.NoteDelayMs;
         _changeInstruments = dialog.Values.ChangeInstruments;
+        _useEndPause = dialog.Values.UseEndPause;
+        _endPauseMs = dialog.Values.EndPauseMs;
         _useCustomBpm = dialog.Values.UseCustomBpm;
         _customBpm = dialog.Values.CustomBpm;
         _suppressSimultaneousWarnings = dialog.Values.SuppressSimultaneousWarnings;
+        _showNoteSequence = dialog.Values.ShowNoteSequence;
+        _equalizeChannelDurations = dialog.Values.EqualizeChannelDurations;
         _controlRecording = dialog.Values.ControlRecording;
         _recordingHotkey = dialog.Values.RecordingHotkey;
         SaveSettings();
@@ -646,6 +662,10 @@ public sealed class MainForm : Form
     {
         _settings.Language = _language == UiLanguage.English ? "en" : "ru";
         _settings.Theme = _themeMode;
+        _settings.ShowNoteSequence = _showNoteSequence;
+        _settings.EqualizeChannelDurations = _equalizeChannelDurations;
+        _settings.UseEndPause = _useEndPause;
+        _settings.EndPauseMs = _endPauseMs;
         _settings.ControlRecording = _controlRecording;
         _settings.RecordingHotkey = _recordingHotkey;
         _settings.Maximized = WindowState == FormWindowState.Maximized;
@@ -716,7 +736,8 @@ public sealed class MainForm : Form
                 _noteDelayMs,
                 en,
                 bpmOverride,
-                _suppressSimultaneousWarnings);
+                _suppressSimultaneousWarnings,
+                _equalizeChannelDurations);
 
             var baseName = Path.GetFileNameWithoutExtension(fileName);
             var outputFileName = $"{baseName}.txt";
@@ -754,8 +775,18 @@ public sealed class MainForm : Form
                       $"Диапазон BPM: {summary.MinimumBpm:F2}–{summary.MaximumBpm:F2}{Environment.NewLine}" +
                       $"Изменений темпа: {summary.TempoChangeCount}{Environment.NewLine}");
 
+            var noteSequenceSummary = _showNoteSequence
+                ? string.Join(
+                    Environment.NewLine,
+                    channelConversions.Select(channel =>
+                        (en ? $"MIDI channel {channel.MidiChannel}" : $"MIDI-канал {channel.MidiChannel}") +
+                        $" sequence: [{string.Join(", ", channel.Result.NoteSequence)}]")) +
+                  Environment.NewLine
+                : string.Empty;
+
             _logBox.AppendText(
                 tempoSummary +
+                noteSequenceSummary +
                 (en
                     ? $"MIDI channels: {channelConversions.Count}{Environment.NewLine}" +
                       $"MIDI events: {channelConversions.Sum(channel => channel.Result.MidiEventCount)}{Environment.NewLine}" +
@@ -876,6 +907,7 @@ public sealed class MainForm : Form
             var language = en ? "en" : "ru";
             var controlRecording = _controlRecording ? "1" : "0";
             var recordingHotkey = _recordingHotkey;
+            var endPauseMs = _useEndPause ? _endPauseMs : 0;
             _ahkStopRequestPath = Path.Combine(
                 Path.GetTempPath(),
                 $"DeltaruneMidiPlayer-{Guid.NewGuid():N}.stop");
@@ -883,7 +915,8 @@ public sealed class MainForm : Form
             {
                 FileName = _ahkTemplatePath,
                 Arguments = $"\"{sequencePath}\" {changeInstruments} {language} {_noteDelayMs} " +
-                            $"{controlRecording} {recordingHotkey} \"{_ahkStopRequestPath}\" {selectedChannel.MidiChannel}",
+                            $"{controlRecording} {recordingHotkey} \"{_ahkStopRequestPath}\" " +
+                            $"{selectedChannel.MidiChannel} {endPauseMs}",
                 WorkingDirectory = AppContext.BaseDirectory,
                 UseShellExecute = true
             });

@@ -11,6 +11,10 @@ internal sealed class AppSettings
     public int WindowWidth { get; set; } = 980;
     public int WindowHeight { get; set; } = 760;
     public bool Maximized { get; set; }
+    public bool ShowNoteSequence { get; set; } = true;
+    public bool EqualizeChannelDurations { get; set; }
+    public bool UseEndPause { get; set; }
+    public int EndPauseMs { get; set; } = 1000;
     public bool ControlRecording { get; set; }
     public string RecordingHotkey { get; set; } = "Numpad7";
 }
@@ -39,6 +43,7 @@ internal static class AppSettingsStore
                            ?? new AppSettings();
             settings.WindowWidth = Math.Clamp(settings.WindowWidth, 820, 3840);
             settings.WindowHeight = Math.Clamp(settings.WindowHeight, 680, 2160);
+            settings.EndPauseMs = Math.Clamp(settings.EndPauseMs, 0, 60000);
             settings.Language = settings.Language == "en" ? "en" : "ru";
             if (string.IsNullOrWhiteSpace(settings.RecordingHotkey))
                 settings.RecordingHotkey = "Numpad7";

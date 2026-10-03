@@ -12,6 +12,7 @@ internal sealed record SequenceCommand(SequenceCommandType Type, string Value, i
 internal sealed record ConversionResult(
     IReadOnlyList<SequenceCommand> Commands,
     IReadOnlyList<string> Warnings,
+    IReadOnlyList<int> NoteSequence,
     double InitialBpm,
     double MinimumBpm,
     double MaximumBpm,

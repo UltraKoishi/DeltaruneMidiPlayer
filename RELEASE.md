@@ -19,7 +19,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\publish.ps1
 Optional version override:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\publish.ps1 -Version 1.1
+powershell -ExecutionPolicy Bypass -File .\scripts\publish.ps1 -Version 1.2
 ```
 
 Use `-NoRestore` only when the required `win-x64` runtime packs have already been restored locally.
@@ -27,8 +27,8 @@ Use `-NoRestore` only when the required `win-x64` runtime packs have already bee
 Outputs:
 
 ```text
-artifacts\DeltaruneMidiPlayer-v1.1-win-x64\
-artifacts\DeltaruneMidiPlayer-v1.1-win-x64.zip
+artifacts\DeltaruneMidiPlayer-v1.2-win-x64\
+artifacts\DeltaruneMidiPlayer-v1.2-win-x64.zip
 ```
 
 The package is self-contained and includes:
@@ -46,9 +46,12 @@ The package is self-contained and includes:
 - [ ] Convert a MIDI with tempo changes.
 - [ ] Convert a MIDI with several simultaneous-note warnings.
 - [ ] Convert a multi-channel MIDI and verify that one sequence file contains every active channel.
+- [ ] Toggle MIDI note-number sequences in the activity log.
+- [ ] Equalize channel durations and verify that shorter channels receive trailing silence.
 - [ ] Select and play each MIDI channel from the channel list in the application.
 - [ ] Start and stop playback with AutoHotkey v2 using F9/F10.
 - [ ] Enable recording control and verify that the selected hotkey starts and stops OBS recording.
+- [ ] Enable the post-playback pause and verify that recording stops after the configured delay.
 - [ ] Verify drag-and-drop import.
 - [ ] Scan the ZIP archive with Windows Security.
 - [ ] Add a code-signing signature if a certificate is available.

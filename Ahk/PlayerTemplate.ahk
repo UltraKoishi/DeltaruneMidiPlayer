@@ -16,6 +16,7 @@ global ControlRecording := A_Args.Length >= 5 && A_Args[5] = "1"
 global RecordingHotkey := A_Args.Length >= 6 ? A_Args[6] : "Numpad7"
 global StopRequestFile := A_Args.Length >= 7 ? A_Args[7] : ""
 global SelectedChannel := A_Args.Length >= 8 ? Max(0, A_Args[8] + 0) : 0
+global EndPauseMs := A_Args.Length >= 9 ? Max(0, A_Args[9] + 0) : 0
 global RecordingKeyHoldMs := 100
 global InstrumentKeyHoldMs := 10
 global InstrumentKeyGapMs := 10
@@ -315,13 +316,17 @@ SetTimer(WatchStopRequest, 50)
 OnExit(HandleExit)
 
 $F9:: {
-    global IsPlaying, SequenceFile
+    global IsPlaying, SequenceFile, EndPauseMs
     if IsPlaying || !DebounceCheck()
         return
 
     IsPlaying := true
     StartRecording()
-    try PlaySequenceFromFile(SequenceFile)
+    try {
+        PlaySequenceFromFile(SequenceFile)
+        if (EndPauseMs > 0)
+            Sleep(EndPauseMs)
+    }
     finally {
         ReleaseActiveKeys()
         StopRecording()
